@@ -399,8 +399,9 @@ module EventMachine
           if data_len == -1 # expect no data; return nil
             dispatch_response(nil)
           elsif @buffer.size >= data_len + 2 # buffer is full of expected data
-            dispatch_response(@buffer.slice!(0, data_len))
+            data = @buffer.slice!(0, data_len)
             @buffer.slice!(0,2) # tossing \r\n
+            dispatch_response(data)
           else # buffer isn't full or nil
             # TODO: don't control execution with exceptions
             raise ParserError
