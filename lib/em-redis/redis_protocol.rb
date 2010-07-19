@@ -324,7 +324,7 @@ module EventMachine
           raise ArgumentError, "wrong number of arguments (#{args.length} for 1)"
         end
         options[:host] ||= '127.0.0.1'
-        options[:port]   = (options[:port] || 6379).to_i
+        options[:port]   = (options[:port] || '6379')
         EM.connect options[:host], options[:port], self, options
       end
 
