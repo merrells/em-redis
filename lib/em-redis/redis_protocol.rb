@@ -235,7 +235,7 @@ module EventMachine
         argv[0] = argv[0].to_s unless argv[0].kind_of? String
         argv[0] = argv[0].downcase
         send_command(argv)
-        @redis_callbacks << [REPLY_PROCESSOR[argv[0]], blk]
+        @lock.synchronize { @redis_callbacks << [REPLY_PROCESSOR[argv[0]], blk] }
       end
 
       def call_commands(argvs, &blk)
@@ -255,7 +255,7 @@ module EventMachine
         # FIXME: argvs may contain heterogenous commands, storing all
         # REPLY_PROCESSORs may turn out expensive and has been omitted
         # for now.
-        @redis_callbacks << [nil, argvs.length, blk]
+        @lock.synchronize { @redis_callbacks << [nil, argvs.length, blk] }
       end
 
       def send_command(argv)
@@ -354,6 +354,7 @@ module EventMachine
       def connection_completed
         @logger.debug { "Connected to #{@host}:#{@port}" } if @logger
 
+        @lock= Mutex.new
         @redis_callbacks = []
         @multibulk_n     = false
         @reconnecting    = false
@@ -437,7 +438,7 @@ module EventMachine
           end
         end
 
-        callback = @redis_callbacks.shift
+        callback = @lock.synchronize { @redis_callbacks.shift }
         if callback.kind_of?(Array) && callback.length == 2
           processor, blk = callback
           value = processor.call(value) if processor
@@ -447,7 +448,7 @@ module EventMachine
           value = processor.call(value) if processor
           @values << value
           if pipeline_count > 1
-            @redis_callbacks.unshift [processor, pipeline_count - 1, blk]
+            @lock.synchronize { @redis_callbacks.unshift [processor, pipeline_count - 1, blk] }
           else
             blk.call(@values) if blk
             @values = []
