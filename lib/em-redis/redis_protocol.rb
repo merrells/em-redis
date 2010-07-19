@@ -319,12 +319,12 @@ module EventMachine
           else raise ArgumentError, 'first argument must be Hash or String'
           end
         when 2
-          options = {:host => args[1], :port => args[2]}
+          options = {:host => args[0], :port => args[1]}
         else
           raise ArgumentError, "wrong number of arguments (#{args.length} for 1)"
         end
         options[:host] ||= '127.0.0.1'
-        options[:port]   = (options[:port] || '6379')
+        options[:port]   = (options[:port] || 6379)
         EM.connect options[:host], options[:port], self, options
       end
 
