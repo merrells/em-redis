@@ -413,7 +413,7 @@ module EventMachine
         #e.g. *2\r\n$1\r\na\r\n$1\r\nb\r\n 
         when ASTERISK
           multibulk_count = Integer(reply_args)
-          if multibulk_count == -1
+          if multibulk_count <= 0
             dispatch_response([])
           else
             start_multibulk(multibulk_count)
